@@ -7,14 +7,21 @@ import (
 	"net/http"
 	"net/url"
 	"github.com/xuri/excelize/v2"
+	"log"
+	"os"
 )
 
+
+func init() {
+    InfoLogger = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+    ErrorLogger = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+}
 
 func FetchAndWriteDeploymentData(inputURL string, filePath string) {
 
 	u, err := url.Parse(inputURL)
 	if err != nil {
-		fmt.Println("Error parsing URL:", err)
+		ErrorLogger.Println("Error parsing URL:", err)
 		return
 	}
 
@@ -32,7 +39,7 @@ func FetchAndWriteDeploymentData(inputURL string, filePath string) {
 
 	resp, err := http.Get(newURL)
 	if err != nil {
-		fmt.Println("Error making HTTP request:", err)
+		ErrorLogger.Println("Error making HTTP request:", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -40,31 +47,31 @@ func FetchAndWriteDeploymentData(inputURL string, filePath string) {
 	
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
+		ErrorLogger.Println("Error reading response body:", err)
 		return
 	}
 
 
 	var result map[string]interface{}
 	if err := json.Unmarshal(body, &result); err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
+		ErrorLogger.Println("Error unmarshalling JSON:", err)
 		return
 	}
 
-	fmt.Println("Code:", result["code"])
+	InfoLogger.Println("Status Code for Deployment:", result["code"])
 
 	data := result["data"].([]interface{})
 
 
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
-		fmt.Println("Error opening Excel file:", err)
+		ErrorLogger.Println("Error opening file:", err)
 		return
 	}
 
 
 	if _, err := f.NewSheet("Deployment"); err != nil {
-		fmt.Println("Error creating 'Deployment' sheet:", err)
+		ErrorLogger.Println("Error creating 'Deployment' sheet:", err)
 		return
 	}
 
@@ -73,7 +80,7 @@ func FetchAndWriteDeploymentData(inputURL string, filePath string) {
 	for i, h := range header {
 		cell := fmt.Sprintf("%s%d", string('A'+i), 1) 
 		if err := f.SetCellValue("Deployment", cell, h); err != nil {
-			fmt.Println("Error writing Excel header:", err)
+			ErrorLogger.Println("Error writing header:", err)
 			return
 		}
 	}
@@ -107,21 +114,21 @@ func FetchAndWriteDeploymentData(inputURL string, filePath string) {
 			if cost, ok := deploymentOne["totalCost"].(float64);ok {
 				totalCost = cost
 			} else {
-				fmt.Println("Error fetching cost data")
+				ErrorLogger.Println("Error fetching cost data")
 			}
 
 			var totalEfficiency float64
 			if efficiency, ok := deploymentOne["totalEfficiency"].(float64); ok {
 				totalEfficiency = efficiency * 100
 			} else {
-				fmt.Println("Error fetching efficiency data")
+				ErrorLogger.Println("Error fetching efficiency data")
 			}
 
 			record := []interface{}{name, region, namespace_deployment , windowStart, windowEnd,fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency)}
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
 				if err := f.SetCellValue("Deployment", cell, val); err != nil {
-					fmt.Println("Error writing record to Excel:", err)
+					ErrorLogger.Println("Error writing record :", err)
 					return
 				}
 			}
@@ -131,9 +138,9 @@ func FetchAndWriteDeploymentData(inputURL string, filePath string) {
 
 
 	if err := f.SaveAs(filePath); err != nil {
-		fmt.Println("Error saving Excel file:", err)
+		ErrorLogger.Println("Error saving file:", err)
 		return
 	}
 
-	fmt.Println("Deployment Data successfully written to Excel file")
+	InfoLogger.Println("Deployment Data successfully written")
 }

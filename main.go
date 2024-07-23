@@ -3,7 +3,19 @@ package main
 import (
 	"fmt"
 	"github.com/xuri/excelize/v2"
+	"log"
+	"os"
 )
+var (
+    InfoLogger  *log.Logger
+    ErrorLogger *log.Logger
+)
+
+func init() {
+    InfoLogger = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+    ErrorLogger = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
 
 func main() {
 	const kubecostEndpoint = "http://a9b82b2ca8f5442f4bb118af0d6901fa-1974666064.ap-south-1.elb.amazonaws.com:9090"
@@ -22,7 +34,7 @@ func main() {
 
 	
 	if err := f.SaveAs(filePath); err != nil {     
-		fmt.Println("Error creating Excel file:", err)
+		fmt.Println("Error creating file:", err)
 		return
 	}
 

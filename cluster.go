@@ -14,7 +14,7 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 
 	u, err := url.Parse(inputURL)
 	if err != nil {
-		fmt.Println("Error parsing URL:", err)
+		ErrorLogger.Println("Error parsing URL:", err)
 		return
 	}
 
@@ -33,7 +33,7 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 	
 	resp, err := http.Get(newURL)
 	if err != nil {
-		fmt.Println("Error making HTTP request:", err)
+		ErrorLogger.Println("Error making HTTP request:", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -41,25 +41,25 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 	
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
+		ErrorLogger.Println("Error reading response body:", err)
 		return
 	}
 
 	
 	var result map[string]interface{}
 	if err := json.Unmarshal(body, &result); err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
+		ErrorLogger.Println("Error unmarshalling JSON:", err)
 		return
 	}
 
-	fmt.Println("Code:", result["code"])
+	InfoLogger.Println("Status Code for Cluster : ", result["code"])
 
 	data := result["data"].([]interface{})
 
 	
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
-		fmt.Println("Error opening Excel file:", err)
+		ErrorLogger.Println("Error opening file:", err)
 		return
 	}
 
@@ -69,7 +69,7 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 	for i, h := range header {
 		cell := fmt.Sprintf("%s%d", string('A'+i), 1) // A1, B1, C1, etc.
 		if err := f.SetCellValue(sheetName, cell, h); err != nil {
-			fmt.Println("Error writing Excel header:", err)
+			ErrorLogger.Println("Error writing header:", err)
 			return
 		}
 	}
@@ -99,7 +99,7 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 			if cost,ok := clusterOne["totalCost"].(float64); ok {
 				totalCost = cost
 			} else {
-				fmt.Println("Total cost is not a float64")
+				ErrorLogger.Println("Total cost is not a float64")
 				totalCost = 0 
 			}
 
@@ -108,7 +108,7 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 			if efficiency, ok := clusterOne["totalEfficiency"].(float64); ok {
 				totalEfficiency = efficiency * 100
 			} else {
-				fmt.Println("Total Efficiency is not a float64")
+				ErrorLogger.Println("Total Efficiency is not a float64")
 				totalEfficiency = 0
 			}
 
@@ -116,7 +116,7 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row)
 				if err := f.SetCellValue(sheetName, cell, val); err != nil {
-					fmt.Println("Error writing record to Excel:", err)
+					ErrorLogger.Println("Error writing record :", err)
 					return
 				}
 			}
@@ -126,9 +126,9 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 
 	
 	if err := f.SaveAs(filePath); err != nil {
-		fmt.Println("Error saving Excel file:", err)
+		ErrorLogger.Println("Error saving file:", err)
 		return
 	}
 
-	fmt.Println("Cluster data successfully written to Excel file")
+	InfoLogger.Println("Cluster data successfully written")
 }

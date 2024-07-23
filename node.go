@@ -7,19 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"github.com/xuri/excelize/v2"
-	"log"
-	"os"
 )
 
-var (
-    InfoLogger  *log.Logger
-    ErrorLogger *log.Logger
-)
-
-func init() {
-    InfoLogger = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-    ErrorLogger = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-}
 
 func FetchAndWriteNodeData(inputURL string, filePath string) {
 
@@ -69,7 +58,7 @@ func FetchAndWriteNodeData(inputURL string, filePath string) {
 
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
-		ErrorLogger.Println("Error opening Excel file:", err)
+		ErrorLogger.Println("Error opening file:", err)
 		return
 	}
 
@@ -84,7 +73,7 @@ func FetchAndWriteNodeData(inputURL string, filePath string) {
 	for i, h := range header {
 		cell := fmt.Sprintf("%s%d", string('A'+i), 1) // A1, B1, C1, etc.
 		if err := f.SetCellValue("Node", cell, h); err != nil {
-			ErrorLogger.Println("Error writing Excel header:", err)
+			ErrorLogger.Println("Error writing header:", err)
 			return
 		}
 	}
@@ -136,7 +125,7 @@ func FetchAndWriteNodeData(inputURL string, filePath string) {
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row) // A2, B2, C2, etc.
 				if err := f.SetCellValue("Node", cell, val); err != nil {
-					ErrorLogger.Println("Error writing record to Excel:", err)
+					ErrorLogger.Println("Error writing record :", err)
 					return
 				}
 			}
@@ -144,9 +133,9 @@ func FetchAndWriteNodeData(inputURL string, filePath string) {
 		}
 	}
 
-	// Save the Excel file
+
 	if err := f.SaveAs(filePath); err != nil {
-		ErrorLogger.Println("Error saving Excel file:", err)
+		ErrorLogger.Println("Error saving file:", err)
 		return
 	}
 
