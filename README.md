@@ -10,17 +10,18 @@ This Go script fetches data from the Kubecost Allocation API to retrieve efficie
 ## Setup
 
 1. Clone the repository to your local machine.
-2. Open the `main.go` file.
-3. Replace the placeholder Kubecost dashboard endpoint with your actual endpoint in the `main.go` file.
+2. Navigate into the project directory.
+3. Open the `main.go` file.
+4. Replace the placeholder Kubecost dashboard endpoint with your actual endpoint in the `main.go` file.
 
 ## Running the Code
 
 
 To run the script without building using go run:
 
-```sh
-cd KubecostAPIScript
+Note : You should be inside the project directory.
 
+```sh
 go run .
 ```
 
@@ -29,8 +30,9 @@ go run .
 
 To build the executable:
 
+Note : You should be inside the project directory.
+
 ```sh
-cd KubecostAPIScript
 go build .
 ```
 
