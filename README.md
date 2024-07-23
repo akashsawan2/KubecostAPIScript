@@ -21,6 +21,7 @@ To run the script without building:
 
 ```sh
 go run .
+```
 
 
 Building and Running the Executable
