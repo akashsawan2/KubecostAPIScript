@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	inputURL := "http://a9b82b2ca8f5442f4bb118af0d6901fa-1974666064.ap-south-1.elb.amazonaws.com:9090"
-	filePath := "output.xlsx"
+	const kubecostEndpoint = "http://a9b82b2ca8f5442f4bb118af0d6901fa-1974666064.ap-south-1.elb.amazonaws.com:9090"
+	filePath := "efficiency.xlsx"
 
 	
 	f := excelize.NewFile() 
@@ -28,20 +28,20 @@ func main() {
 
 
 
-	FetchAndWriteClusterData(inputURL, filePath)
+	FetchAndWriteClusterData(kubecostEndpoint, filePath)
 	
-	FetchAndWriteNodeData(inputURL, filePath)
+	FetchAndWriteNodeData(kubecostEndpoint, filePath)
 
-	FetchAndWritePodData(inputURL, filePath)
+	FetchAndWritePodData(kubecostEndpoint, filePath)
 
-	FetchAndWriteNamespaceData(inputURL, filePath)
+	FetchAndWriteNamespaceData(kubecostEndpoint, filePath)
 
-	FetchAndWriteServiceData(inputURL , filePath)
+	FetchAndWriteServiceData(kubecostEndpoint , filePath)
 
-	FetchAndWriteDeploymentData(inputURL, filePath)
+	FetchAndWriteDeploymentData(kubecostEndpoint, filePath)
 
-	FetchAndWriteControllerData(inputURL, filePath)
+	FetchAndWriteControllerData(kubecostEndpoint, filePath)
 
-	FetchAndWriteControllerKindData(inputURL, filePath)
+	FetchAndWriteControllerKindData(kubecostEndpoint, filePath)
 
 }
