@@ -96,7 +96,6 @@ func FetchAndWriteNamespaceData(inputURL string, filePath string) {
 			var region string
 			if name != "__idle__"{
 				labels := properties["labels"].(map[string]interface{})
-			
 				region = labels["topology_kubernetes_io_region"].(string)
 			}
 

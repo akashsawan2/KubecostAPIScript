@@ -99,23 +99,6 @@ func FetchAndWriteControllerKindData(inputURL string, filePath string) {
 				region = labels["topology_kubernetes_io_region"].(string)
 			}
 
-			
-			var namespace_controllerKind string
-			if name == "__idle__" {
-				namespace_labels, ok := properties["namespaceLabels"].(map[string]interface{})
-				if ok {
-					namespace_controllerKind, ok = namespace_labels["kubernetes_io_metadata_name"].(string)
-					if !ok {
-						fmt.Println("Error: kubernetes_io_metadata_name is not a string")
-						namespace_controllerKind = "" 
-					}
-				} else {
-					fmt.Println("Error: namespaceLabels is not a map[string]interface{}")
-					namespace_controllerKind = "" 
-				}
-			}
-
-
 			window := controllerKindOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)
 			windowEnd := window["end"].(string)
@@ -134,7 +117,7 @@ func FetchAndWriteControllerKindData(inputURL string, filePath string) {
 				fmt.Println("Error fetching efficiency data")
 			}
 
-			record := []interface{}{name, region, namespace_controllerKind , windowStart, windowEnd,fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency)}
+			record := []interface{}{name, region , windowStart, windowEnd,fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency)}
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
 				if err := f.SetCellValue("controllerKind", cell, val); err != nil {
