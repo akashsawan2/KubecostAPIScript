@@ -15,16 +15,26 @@ This Go script fetches data from the Kubecost Allocation API to retrieve efficie
 
 ## Running the Code
 
-### Using `go run`
 
-To run the script without building:
+To run the script without building using go run:
 
 ```sh
+cd KubecostAPIScript
+
 go run .
 ```
 
 
-Building and Running the Executable
+## Building and Running the Executable
 
 To build the executable:
 
+```sh
+cd KubecostAPIScript
+go build .
+```
+
+Then, run the built executable:
+```sh
+./kubecost-efficiency-fetcher
+```
