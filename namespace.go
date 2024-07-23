@@ -23,7 +23,6 @@ func FetchAndWriteNamespaceData(inputURL string, filePath string) {
 	q := u.Query()
 	q.Set("window", "24h")
 	q.Set("aggregate", "namespace")
-	q.Set("idle", "false")
 	q.Set("accumulate", "true")
 	u.RawQuery = q.Encode()
 
@@ -94,8 +93,12 @@ func FetchAndWriteNamespaceData(inputURL string, filePath string) {
 			properties := namespaceOne["properties"].(map[string]interface{})
 			namespace := properties["namespace"].(string)
 
-			labels := properties["labels"].(map[string]interface{})
-			region := labels["topology_kubernetes_io_region"].(string)
+			var region string
+			if name != "__idle__"{
+				labels := properties["labels"].(map[string]interface{})
+			
+				region = labels["topology_kubernetes_io_region"].(string)
+			}
 
 			window := namespaceOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)

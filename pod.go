@@ -23,7 +23,6 @@ func FetchAndWritePodData(inputURL string, filePath string) {
 	q := u.Query()
 	q.Set("window", "24h")
 	q.Set("aggregate", "pod")
-	q.Set("idle", "false")
 	q.Set("accumulate", "true")
 	u.RawQuery = q.Encode()
 
@@ -96,9 +95,15 @@ func FetchAndWritePodData(inputURL string, filePath string) {
 			properties := podOne["properties"].(map[string]interface{})
 			pod := properties["pod"].(string)
 
-			labels := properties["labels"].(map[string]interface{})
-			region := labels["topology_kubernetes_io_region"].(string)
-			namespace_pod := labels["kubernetes_io_metadata_name"]
+			var region string
+			if name != "__idle__"{
+				labels := properties["labels"].(map[string]interface{})
+			
+				region = labels["topology_kubernetes_io_region"].(string)
+			}
+			
+			namespace_labels := properties["namespaceLabels"].(map[string]interface{})
+			namespace_pod := namespace_labels["kubernetes_io_metadata_name"]
 
 			window := podOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)

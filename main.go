@@ -42,5 +42,6 @@ func main() {
 
 	FetchAndWriteControllerData(inputURL, filePath)
 
+	FetchAndWriteControllerKindData(inputURL, filePath)
 
 }

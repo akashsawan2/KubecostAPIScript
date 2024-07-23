@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-
 	"github.com/xuri/excelize/v2"
 )
 
@@ -24,7 +23,6 @@ func FetchAndWriteNodeData(inputURL string, filePath string) {
 	q := u.Query()
 	q.Set("window", "24h")
 	q.Set("aggregate", "node")
-	q.Set("idle", "false")
 	q.Set("accumulate", "true")
 	u.RawQuery = q.Encode()
 
@@ -93,9 +91,14 @@ func FetchAndWriteNodeData(inputURL string, filePath string) {
 
 			properties := nodeOne["properties"].(map[string]interface{})
 			node := properties["node"].(string)
-
-			labels := properties["labels"].(map[string]interface{})
-			region := labels["topology_kubernetes_io_region"].(string)
+			
+			var region string
+			if name != "__idle__"{
+				labels := properties["labels"].(map[string]interface{})
+			
+				region = labels["topology_kubernetes_io_region"].(string)
+			}
+			
 
 			window := nodeOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)

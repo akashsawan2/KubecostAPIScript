@@ -23,7 +23,6 @@ func FetchAndWriteServiceData(inputURL string, filePath string) {
 	q := u.Query()
 	q.Set("window", "24h")
 	q.Set("aggregate", "service")
-	q.Set("idle", "false")
 	q.Set("accumulate", "true")
 	u.RawQuery = q.Encode()
 
@@ -93,10 +92,15 @@ func FetchAndWriteServiceData(inputURL string, filePath string) {
 
 			properties := serviceOne["properties"].(map[string]interface{})
 
-			labels := properties["labels"].(map[string]interface{})
-			region := labels["topology_kubernetes_io_region"].(string)
+			var region string
+			if name != "__idle__"{
+				labels := properties["labels"].(map[string]interface{})
+			
+				region = labels["topology_kubernetes_io_region"].(string)
+			}
 
-			namespace_service := labels["kubernetes_io_metadata_name"]
+			namespace_labels := properties["namespaceLabels"].(map[string]interface{})
+			namespace_service := namespace_labels["kubernetes_io_metadata_name"]
 
 			window := serviceOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)
