@@ -69,7 +69,7 @@ func FetchAndWriteControllerKindData(inputURL string, filePath string) {
 	}
 
 
-	header := []string{"Name", "Region", "Namespace" ,"Window Start", "Window End","Total Cost" ,"Total Efficiency"}
+	header := []string{"ControllerKind", "Region" ,"Window Start", "Window End","Cpu Cost","Gpu Cost","Ram Cost","PV Cost","Network Cost","LoadBalancer Cost","Shared Cost","Total Cost","Cpu Efficiency","Ram Efficiency","Total Efficiency"}
 	for i, h := range header {
 		cell := fmt.Sprintf("%s%d", string('A'+i), 1) 
 		if err := f.SetCellValue("controllerKind", cell, h); err != nil {
@@ -99,25 +99,32 @@ func FetchAndWriteControllerKindData(inputURL string, filePath string) {
 				region = labels["topology_kubernetes_io_region"].(string)
 			}
 
+
 			window := controllerKindOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)
 			windowEnd := window["end"].(string)
 
-			var totalCost float64
-			if cost, ok := controllerKindOne["totalCost"].(float64);ok {
-				totalCost = cost
-			} else {
-				ErrorLogger.Println("Error fetching cost data")
-			}
+			cpuCost := controllerKindOne["cpuCost"].(float64)
+			gpuCost := controllerKindOne["gpuCost"].(float64)
+			ramCost := controllerKindOne["ramCost"].(float64)
+			pvCost  := controllerKindOne["pvCost"].(float64)
+			networkCost := controllerKindOne["networkCost"].(float64)
+			loadBalancerCost := controllerKindOne["loadBalancerCost"].(float64)
+			sharedCost := controllerKindOne["sharedCost"].(float64)
 
-			var totalEfficiency float64
-			if efficiency, ok := controllerKindOne["totalEfficiency"].(float64); ok {
-				totalEfficiency = efficiency * 100
-			} else {
-				ErrorLogger.Println("Error fetching efficiency data")
-			}
+			totalCost := controllerKindOne["totalCost"].(float64)
 
-			record := []interface{}{name, region , windowStart, windowEnd,fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency)}
+			cpuEfficiency := controllerKindOne["cpuEfficiency"].(float64)
+			cpuEfficiency = cpuEfficiency * 100
+
+			ramEfficiency := controllerKindOne["ramEfficiency"].(float64)
+			ramEfficiency = ramEfficiency * 100
+
+			totalEfficiency := controllerKindOne["totalEfficiency"].(float64)
+			totalEfficiency = totalEfficiency * 100
+
+
+			record := []interface{}{name, region , windowStart, windowEnd, cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency}
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
 				if err := f.SetCellValue("controllerKind", cell, val); err != nil {

@@ -23,7 +23,6 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 	q := u.Query()
 	q.Set("window", "24h")
 	q.Set("aggregate", "cluster")
-	q.Set("idle", "false")
 	q.Set("accumulate", "true")
 	u.RawQuery = q.Encode()
 
@@ -64,10 +63,10 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 	}
 
 	
-	header := []string{"Name", "Cluster", "Region", "Window Start", "Window End","Total Cost" ,"Total Efficiency"}
+	header := []string{"Cluster", "Region", "Window Start", "Window End","Cpu Cost","Gpu Cost","Ram Cost","PV Cost","Network Cost","LoadBalancer Cost","Shared Cost","Total Cost","Cpu Efficiency", "Ram Efficiency" ,"Total Efficiency"}
 	sheetName := "Cluster"
 	for i, h := range header {
-		cell := fmt.Sprintf("%s%d", string('A'+i), 1) // A1, B1, C1, etc.
+		cell := fmt.Sprintf("%s%d", string('A'+i), 1)
 		if err := f.SetCellValue(sheetName, cell, h); err != nil {
 			ErrorLogger.Println("Error writing header:", err)
 			return
@@ -83,7 +82,6 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 		for _, clusterData := range clusterMap {
 			clusterOne := clusterData.(map[string]interface{})
 
-			name := clusterOne["name"].(string)
 
 			properties := clusterOne["properties"].(map[string]interface{})
 			cluster := properties["cluster"].(string)
@@ -95,24 +93,27 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 			windowStart := window["start"].(string)
 			windowEnd := window["end"].(string)
 
-			var totalCost float64
-			if cost,ok := clusterOne["totalCost"].(float64); ok {
-				totalCost = cost
-			} else {
-				ErrorLogger.Println("Total cost is not a float64")
-				totalCost = 0 
-			}
 
+			cpuCost := clusterOne["cpuCost"].(float64)
+			gpuCost := clusterOne["gpuCost"].(float64)
+			ramCost := clusterOne["ramCost"].(float64)
+			pvCost  := clusterOne["pvCost"].(float64)
+			networkCost := clusterOne["networkCost"].(float64)
+			loadBalancerCost := clusterOne["loadBalancerCost"].(float64)
+			sharedCost := clusterOne["sharedCost"].(float64)
 
-			var totalEfficiency float64
-			if efficiency, ok := clusterOne["totalEfficiency"].(float64); ok {
-				totalEfficiency = efficiency * 100
-			} else {
-				ErrorLogger.Println("Total Efficiency is not a float64")
-				totalEfficiency = 0
-			}
+			totalCost := clusterOne["totalCost"].(float64)
+			
+			cpuEfficiency := clusterOne["cpuEfficiency"].(float64)
+			cpuEfficiency = cpuEfficiency * 100
 
-			record := []interface{}{name, cluster, region, windowStart, windowEnd , fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency) }
+			ramEfficiency := clusterOne["ramEfficiency"].(float64)
+			ramEfficiency = ramEfficiency * 100
+
+			totalEfficiency := clusterOne["totalEfficiency"].(float64)
+			totalEfficiency = totalEfficiency * 100
+
+			record := []interface{}{cluster, region, windowStart, windowEnd ,cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency }
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row)
 				if err := f.SetCellValue(sheetName, cell, val); err != nil {

@@ -76,7 +76,7 @@ func FetchAndWriteDeploymentData(inputURL string, filePath string) {
 	}
 
 
-	header := []string{"Name", "Region", "Namespace" ,"Window Start", "Window End","Total Cost" ,"Total Efficiency"}
+	header := []string{"Deployment", "Region", "Namespace" ,"Window Start", "Window End","Cpu Cost","Gpu Cost","Ram Cost","PV Cost","Network Cost","LoadBalancer Cost","Shared Cost","Total Cost" ,"Cpu Efficiency","Ram Efficiency","Total Efficiency"}
 	for i, h := range header {
 		cell := fmt.Sprintf("%s%d", string('A'+i), 1) 
 		if err := f.SetCellValue("Deployment", cell, h); err != nil {
@@ -110,21 +110,26 @@ func FetchAndWriteDeploymentData(inputURL string, filePath string) {
 			windowStart := window["start"].(string)
 			windowEnd := window["end"].(string)
 
-			var totalCost float64
-			if cost, ok := deploymentOne["totalCost"].(float64);ok {
-				totalCost = cost
-			} else {
-				ErrorLogger.Println("Error fetching cost data")
-			}
+			cpuCost := deploymentOne["cpuCost"].(float64)
+			gpuCost := deploymentOne["gpuCost"].(float64)
+			ramCost := deploymentOne["ramCost"].(float64)
+			pvCost  := deploymentOne["pvCost"].(float64)
+			networkCost := deploymentOne["networkCost"].(float64)
+			loadBalancerCost := deploymentOne["loadBalancerCost"].(float64)
+			sharedCost := deploymentOne["sharedCost"].(float64)
 
-			var totalEfficiency float64
-			if efficiency, ok := deploymentOne["totalEfficiency"].(float64); ok {
-				totalEfficiency = efficiency * 100
-			} else {
-				ErrorLogger.Println("Error fetching efficiency data")
-			}
+			totalCost := deploymentOne["totalCost"].(float64)
 
-			record := []interface{}{name, region, namespace_deployment , windowStart, windowEnd,fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency)}
+			cpuEfficiency := deploymentOne["cpuEfficiency"].(float64)
+			cpuEfficiency = cpuEfficiency * 100
+
+			ramEfficiency := deploymentOne["ramEfficiency"].(float64)
+			ramEfficiency = ramEfficiency * 100
+
+			totalEfficiency := deploymentOne["totalEfficiency"].(float64)
+			totalEfficiency = totalEfficiency * 100
+
+			record := []interface{}{name, region, namespace_deployment , windowStart, windowEnd,cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency}
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
 				if err := f.SetCellValue("Deployment", cell, val); err != nil {

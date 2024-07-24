@@ -69,7 +69,7 @@ func FetchAndWriteServiceData(inputURL string, filePath string) {
 	}
 
 
-	header := []string{"Name", "Region", "Namespace" ,"Window Start", "Window End","Total Cost" ,"Total Efficiency"}
+	header := []string{"Service", "Region", "Namespace" ,"Window Start", "Window End","Cpu Cost","Gpu Cost","Ram Cost","PV Cost","Network Cost","LoadBalancer Cost","Shared Cost","Total Cost","Cpu Efficiency","Ram Efficiency","Total Efficiency"}
 	for i, h := range header {
 		cell := fmt.Sprintf("%s%d", string('A'+i), 1) 
 		if err := f.SetCellValue("Service", cell, h); err != nil {
@@ -105,22 +105,27 @@ func FetchAndWriteServiceData(inputURL string, filePath string) {
 			window := serviceOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)
 			windowEnd := window["end"].(string)
+			
+			cpuCost := serviceOne["cpuCost"].(float64)
+			gpuCost := serviceOne["gpuCost"].(float64)
+			ramCost := serviceOne["ramCost"].(float64)
+			pvCost  := serviceOne["pvCost"].(float64)
+			networkCost := serviceOne["networkCost"].(float64)
+			loadBalancerCost := serviceOne["loadBalancerCost"].(float64)
+			sharedCost := serviceOne["sharedCost"].(float64)
 
-			var totalCost float64
-			if cost, ok := serviceOne["totalCost"].(float64);ok {
-				totalCost = cost
-			} else {
-				ErrorLogger.Println("Error fetching cost data")
-			}
+			totalCost := serviceOne["totalCost"].(float64)
 
-			var totalEfficiency float64
-			if efficiency, ok := serviceOne["totalEfficiency"].(float64); ok {
-				totalEfficiency = efficiency * 100
-			} else {
-				ErrorLogger.Println("Error fetching efficiency data")
-			}
+			cpuEfficiency := serviceOne["cpuEfficiency"].(float64)
+			cpuEfficiency = cpuEfficiency * 100
 
-			record := []interface{}{name, region, namespace_service , windowStart, windowEnd,fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency)}
+			ramEfficiency := serviceOne["ramEfficiency"].(float64)
+			ramEfficiency = ramEfficiency * 100
+
+			totalEfficiency := serviceOne["totalEfficiency"].(float64)
+			totalEfficiency = totalEfficiency * 100
+
+			record := []interface{}{name, region, namespace_service , windowStart, windowEnd,cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency}
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
 				if err := f.SetCellValue("Service", cell, val); err != nil {

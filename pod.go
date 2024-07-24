@@ -69,9 +69,9 @@ func FetchAndWritePodData(inputURL string, filePath string) {
 	}
 
 	
-	header := []string{"Name", "Pod", "Region","Namespace" ,"Window Start", "Window End","Total Cost","Total Efficiency"}
+	header := []string{"Pod", "Region","Namespace" ,"Window Start", "Window End","Cpu Cost","Gpu Cost","Ram Cost","PV Cost","Network Cost","LoadBalancer Cost","Shared Cost","Total Cost","Cpu Efficiency","Ram Efficiency","Total Efficiency"}
 	for i, h := range header {
-		cell := fmt.Sprintf("%s%d", string('A'+i), 1) // A1, B1, C1, etc.
+		cell := fmt.Sprintf("%s%d", string('A'+i), 1) 
 		if err := f.SetCellValue("Pod", cell, h); err != nil {
 			ErrorLogger.Println("Error writing header:", err)
 			return
@@ -109,25 +109,28 @@ func FetchAndWritePodData(inputURL string, filePath string) {
 			windowStart := window["start"].(string)
 			windowEnd := window["end"].(string)
 
-			var totalCost float64
-			if cost, ok := podOne["totalCost"].(float64); ok {
-				totalCost = cost
-			} else {
-				ErrorLogger.Println("Error fetching Cost")
-			}
+			cpuCost := podOne["cpuCost"].(float64)
+			gpuCost := podOne["gpuCost"].(float64)
+			ramCost := podOne["ramCost"].(float64)
+			pvCost  := podOne["pvCost"].(float64)
+			networkCost := podOne["networkCost"].(float64)
+			loadBalancerCost := podOne["loadBalancerCost"].(float64)
+			sharedCost := podOne["sharedCost"].(float64)
 
+			totalCost := podOne["totalCost"].(float64)
 
-			var totalEfficiency float64
-			if efficiency, ok := podOne["totalEfficiency"].(float64); ok {
-				totalEfficiency = efficiency * 100
-			} else {
-				ErrorLogger.Println("Error fetching Efficiency")
-				totalEfficiency = 0
-			}
+			cpuEfficiency := podOne["cpuEfficiency"].(float64)
+			cpuEfficiency = cpuEfficiency * 100
 
-			record := []interface{}{name, pod, region,namespace_pod ,windowStart, windowEnd,fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency)}
+			ramEfficiency := podOne["ramEfficiency"].(float64)
+			ramEfficiency = ramEfficiency * 100
+
+			totalEfficiency := podOne["totalEfficiency"].(float64)
+			totalEfficiency = totalEfficiency * 100
+
+			record := []interface{}{pod, region,namespace_pod ,windowStart, windowEnd ,cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency}
 			for i, val := range record {
-				cell := fmt.Sprintf("%s%d", string('A'+i), row) // A2, B2, C2, etc.
+				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
 				if err := f.SetCellValue("Pod", cell, val); err != nil {
 					ErrorLogger.Println("Error writing record :", err)
 					return

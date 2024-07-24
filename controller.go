@@ -69,7 +69,7 @@ func FetchAndWriteControllerData(inputURL string, filePath string) {
 	}
 
 
-	header := []string{"Name", "Region", "Namespace" ,"Window Start", "Window End","Total Cost" ,"Total Efficiency"}
+	header := []string{"Controller", "Region", "Namespace" ,"Window Start", "Window End","Cpu Cost","Gpu Cost","Ram Cost","PV Cost","Network Cost","LoadBalancer Cost","Shared Cost","Total Cost","Cpu Efficiency","Ram Efficiency","Total Efficiency"}
 	for i, h := range header {
 		cell := fmt.Sprintf("%s%d", string('A'+i), 1) 
 		if err := f.SetCellValue("Controller", cell, h); err != nil {
@@ -81,18 +81,18 @@ func FetchAndWriteControllerData(inputURL string, filePath string) {
 
 	row := 2
 	for _, element := range data {
-		DeploymentMap := element.(map[string]interface{})
+		ControllerMap := element.(map[string]interface{})
 
 
-		for _, DeploymentData := range DeploymentMap {
-			DeploymentOne := DeploymentData.(map[string]interface{})
+		for _, ControllerData := range ControllerMap {
+			ControllerOne := ControllerData.(map[string]interface{})
 
-			name := DeploymentOne["name"].(string)
+			name := ControllerOne["name"].(string)
 			if name =="__unallocated__" {
 				continue
 			}
 
-			properties := DeploymentOne["properties"].(map[string]interface{})
+			properties := ControllerOne["properties"].(map[string]interface{})
 
 			var region string
 			if name != "__idle__"{
@@ -102,27 +102,33 @@ func FetchAndWriteControllerData(inputURL string, filePath string) {
 			}
 
 			namespace_labels := properties["namespaceLabels"].(map[string]interface{})
-			namespace_deployment := namespace_labels["kubernetes_io_metadata_name"]
+			namespace_controller := namespace_labels["kubernetes_io_metadata_name"]
 
-			window := DeploymentOne["window"].(map[string]interface{})
+			window := ControllerOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)
 			windowEnd := window["end"].(string)
 
-			var totalCost float64
-			if cost, ok := DeploymentOne["totalCost"].(float64);ok {
-				totalCost = cost
-			} else {
-				ErrorLogger.Println("Error fetching cost data")
-			}
+			cpuCost := ControllerOne["cpuCost"].(float64)
+			gpuCost := ControllerOne["gpuCost"].(float64)
+			ramCost := ControllerOne["ramCost"].(float64)
+			pvCost  := ControllerOne["pvCost"].(float64)
+			networkCost := ControllerOne["networkCost"].(float64)
+			loadBalancerCost := ControllerOne["loadBalancerCost"].(float64)
+			sharedCost := ControllerOne["sharedCost"].(float64)
 
-			var totalEfficiency float64
-			if efficiency, ok := DeploymentOne["totalEfficiency"].(float64); ok {
-				totalEfficiency = efficiency * 100
-			} else {
-				ErrorLogger.Println("Error fetching efficiency data")
-			}
+			totalCost := ControllerOne["totalCost"].(float64)
 
-			record := []interface{}{name, region, namespace_deployment , windowStart, windowEnd,fmt.Sprintf("%.2f", totalCost) ,fmt.Sprintf("%.2f", totalEfficiency)}
+			cpuEfficiency := ControllerOne["cpuEfficiency"].(float64)
+			cpuEfficiency = cpuEfficiency * 100
+
+			ramEfficiency := ControllerOne["ramEfficiency"].(float64)
+			ramEfficiency = ramEfficiency * 100
+
+			totalEfficiency := ControllerOne["totalEfficiency"].(float64)
+			totalEfficiency = totalEfficiency * 100
+
+
+			record := []interface{}{name, region, namespace_controller , windowStart, windowEnd,cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency}
 			for i, val := range record {
 				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
 				if err := f.SetCellValue("Controller", cell, val); err != nil {
