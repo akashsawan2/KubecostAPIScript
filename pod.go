@@ -6,7 +6,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"github.com/xuri/excelize/v2"
+	"time"
+	"log"
+	"os"
+	"encoding/csv"
 )
 
 
@@ -55,31 +58,31 @@ func FetchAndWritePodData(inputURL string, filePath string) {
 
 	data := result["data"].([]interface{})
 
-	
-	f, err := excelize.OpenFile(filePath)
+	today := time.Now().Format("02January2006")
+	fmt.Println(today)
+
+	fileName := "pod-" + today + ".csv"
+
+	csvfile, err := os.Create(fileName)
 	if err != nil {
-		ErrorLogger.Println("Error opening file:", err)
-		return
+		log.Fatalln("Failed to open the file",err)
 	}
 
-	
-	if _, err := f.NewSheet("Pod"); err != nil {
-		ErrorLogger.Println("Error creating 'Pod' sheet:", err)
-		return
-	}
+	defer csvfile.Close()
 
 	
 	header := []string{"Pod", "Region","Namespace" ,"Window Start", "Window End","Cpu Cost","Gpu Cost","Ram Cost","PV Cost","Network Cost","LoadBalancer Cost","Shared Cost","Total Cost","Cpu Efficiency","Ram Efficiency","Total Efficiency"}
-	for i, h := range header {
-		cell := fmt.Sprintf("%s%d", string('A'+i), 1) 
-		if err := f.SetCellValue("Pod", cell, h); err != nil {
-			ErrorLogger.Println("Error writing header:", err)
-			return
-		}
+	
+	writer := csv.NewWriter(csvfile)
+	defer writer.Flush()
+
+	if err := writer.Write(header); err != nil {
+		log.Fatalln("Fatal to write headers in the csv file",err)
 	}
 
+
 	
-	row := 2
+	
 	for _, element := range data {
 		podMap := element.(map[string]interface{})
 
@@ -103,7 +106,7 @@ func FetchAndWritePodData(inputURL string, filePath string) {
 			}
 			
 			namespace_labels := properties["namespaceLabels"].(map[string]interface{})
-			namespace_pod := namespace_labels["kubernetes_io_metadata_name"]
+			namespace_pod := namespace_labels["kubernetes_io_metadata_name"].(string)
 
 			window := podOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)
@@ -128,23 +131,14 @@ func FetchAndWritePodData(inputURL string, filePath string) {
 			totalEfficiency := podOne["totalEfficiency"].(float64)
 			totalEfficiency = totalEfficiency * 100
 
-			record := []interface{}{pod, region,namespace_pod ,windowStart, windowEnd ,cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency}
-			for i, val := range record {
-				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
-				if err := f.SetCellValue("Pod", cell, val); err != nil {
-					ErrorLogger.Println("Error writing record :", err)
-					return
-				}
+			record := []string{pod, region,namespace_pod ,windowStart, windowEnd ,fmt.Sprintf("%f",cpuCost),fmt.Sprintf("%f",gpuCost),fmt.Sprintf("%f",ramCost),fmt.Sprintf("%f",pvCost),fmt.Sprintf("%f",networkCost),fmt.Sprintf("%f",loadBalancerCost),fmt.Sprintf("%f",sharedCost),fmt.Sprintf("%f",totalCost),fmt.Sprintf("%f",cpuEfficiency),fmt.Sprintf("%f",ramEfficiency),fmt.Sprintf("%f",totalEfficiency)}
+			if err := writer.Write(record); err != nil{
+				fmt.Println("error writing record")
 			}
-			row++
 		}
 	}
 
 
-	if err := f.SaveAs(filePath); err != nil {
-		ErrorLogger.Println("Error saving file:", err)
-		return
-	}
 
 	InfoLogger.Println("Pod Data successfully written")
 }

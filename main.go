@@ -52,8 +52,8 @@ func main() {
 
 	FetchAndWriteDeploymentData(kubecostEndpoint, filePath)
 
-	FetchAndWriteControllerData(kubecostEndpoint, filePath)
+	// FetchAndWriteControllerData(kubecostEndpoint, filePath)
 
-	FetchAndWriteControllerKindData(kubecostEndpoint, filePath)
+	// FetchAndWriteControllerKindData(kubecostEndpoint, filePath)
 
 }

@@ -6,7 +6,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"github.com/xuri/excelize/v2"
+	"time"
+	"log"
+	"os"
+	"encoding/csv"
 )
 
 
@@ -56,30 +59,31 @@ func FetchAndWriteServiceData(inputURL string, filePath string) {
 	data := result["data"].([]interface{})
 
 
-	f, err := excelize.OpenFile(filePath)
+	today := time.Now().Format("02January2006")
+	fmt.Println(today)
+
+	fileName := "Service-" + today + ".csv"
+
+	csvfile, err := os.Create(fileName)
 	if err != nil {
-		ErrorLogger.Println("Error opening file:", err)
-		return
+		log.Fatalln("Failed to open the file",err)
 	}
 
-
-	if _, err := f.NewSheet("Service"); err != nil {
-		ErrorLogger.Println("Error creating 'Service' sheet:", err)
-		return
-	}
+	defer csvfile.Close()
 
 
 	header := []string{"Service", "Region", "Namespace" ,"Window Start", "Window End","Cpu Cost","Gpu Cost","Ram Cost","PV Cost","Network Cost","LoadBalancer Cost","Shared Cost","Total Cost","Cpu Efficiency","Ram Efficiency","Total Efficiency"}
-	for i, h := range header {
-		cell := fmt.Sprintf("%s%d", string('A'+i), 1) 
-		if err := f.SetCellValue("Service", cell, h); err != nil {
-			ErrorLogger.Println("Error writing header:", err)
-			return
-		}
+
+
+	writer := csv.NewWriter(csvfile)
+	defer writer.Flush()
+
+	if err := writer.Write(header); err != nil {
+		log.Fatalln("Fatal to write headers in the csv file",err)
 	}
 
 
-	row := 2
+
 	for _, element := range data {
 		serviceMap := element.(map[string]interface{})
 
@@ -100,7 +104,7 @@ func FetchAndWriteServiceData(inputURL string, filePath string) {
 			}
 
 			namespace_labels := properties["namespaceLabels"].(map[string]interface{})
-			namespace_service := namespace_labels["kubernetes_io_metadata_name"]
+			namespace_service := namespace_labels["kubernetes_io_metadata_name"].(string)
 
 			window := serviceOne["window"].(map[string]interface{})
 			windowStart := window["start"].(string)
@@ -125,23 +129,14 @@ func FetchAndWriteServiceData(inputURL string, filePath string) {
 			totalEfficiency := serviceOne["totalEfficiency"].(float64)
 			totalEfficiency = totalEfficiency * 100
 
-			record := []interface{}{name, region, namespace_service , windowStart, windowEnd,cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency}
-			for i, val := range record {
-				cell := fmt.Sprintf("%s%d", string('A'+i), row) 
-				if err := f.SetCellValue("Service", cell, val); err != nil {
-					ErrorLogger.Println("Error writing record :", err)
-					return
-				}
+			record := []string{name, region, namespace_service , windowStart, windowEnd,fmt.Sprintf("%f",cpuCost),fmt.Sprintf("%f",gpuCost),fmt.Sprintf("%f",ramCost),fmt.Sprintf("%f",pvCost),fmt.Sprintf("%f",networkCost),fmt.Sprintf("%f",loadBalancerCost),fmt.Sprintf("%f",sharedCost),fmt.Sprintf("%f",totalCost),fmt.Sprintf("%f",cpuEfficiency),fmt.Sprintf("%f",ramEfficiency),fmt.Sprintf("%f",totalEfficiency)}
+			if err := writer.Write(record); err != nil{
+				fmt.Println("Error writing record")
 			}
-			row++
+
 		}
 	}
 
-
-	if err := f.SaveAs(filePath); err != nil {
-		ErrorLogger.Println("Error saving file:", err)
-		return
-	}
 
 	InfoLogger.Println("Service Data successfully written ")
 }

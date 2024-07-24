@@ -103,7 +103,7 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 			sharedCost := clusterOne["sharedCost"].(float64)
 
 			totalCost := clusterOne["totalCost"].(float64)
-			
+
 			cpuEfficiency := clusterOne["cpuEfficiency"].(float64)
 			cpuEfficiency = cpuEfficiency * 100
 
@@ -112,6 +112,7 @@ func FetchAndWriteClusterData(inputURL string, filePath string) {
 
 			totalEfficiency := clusterOne["totalEfficiency"].(float64)
 			totalEfficiency = totalEfficiency * 100
+
 
 			record := []interface{}{cluster, region, windowStart, windowEnd ,cpuCost,gpuCost,ramCost,pvCost,networkCost,loadBalancerCost,sharedCost,totalCost,cpuEfficiency,ramEfficiency,totalEfficiency }
 			for i, val := range record {
